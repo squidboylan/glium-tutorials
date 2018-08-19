@@ -21,25 +21,30 @@ fn main() {
     let mut closed = false;
 
     let vertex_shader_src = r#"
-        #version 140
+    #version 140
 
-        in vec2 position;
+    in vec2 position;
+    out vec4 my_attr;      // our new attribute
 
-        uniform mat4 matrix;
+    uniform mat4 matrix;
 
-        void main() {
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
-        }
+    void main() {
+        my_attr = matrix * vec4(position, 0.0, 1.0);     // we need to set the value of each `out` variable.
+        gl_Position = my_attr;
+    }
     "#;
 
     let fragment_shader_src = r#"
-        #version 140
+    #version 140
 
-        out vec4 color;
+    in vec4 my_attr;
+    out vec4 color;
 
-        void main() {
-            color = vec4(1.0, 0.0, 0.0, 1.0);
-        }"#;
+    void main() {
+        color = my_attr;
+    }
+    "#;
+
     let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
 
     let vertex1 = Vertex { position: [-0.5, -0.5] };
@@ -49,19 +54,19 @@ fn main() {
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
-    let mut t: f32 = -0.5;
+    let mut t: f32 = -1.0;
     while !closed {
         let mut target = display.draw();
         t += 0.02;
-        if t > 0.5 {
-            t = -0.5;
+        if t > 1.0 {
+            t = -1.0;
         }
         let uniforms = uniform! {
             matrix: [
-                [t.cos(), t.sin(), 0.0, 0.0],
-                [-t.sin(), t.cos(), 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [ t , 0.0, 0.0, 1.0f32],
+                [1.0 + t, 0.0, 0.0, 0.0],
+                [0.0, 1.0 + t, 0.0, 0.0],
+                [0.0, 0.0, 1.0 + t, 0.0],
+                [0.0, 0.0, 0.0, 1.0f32],
             ]
         };
         target.clear_color(0.0, 0.0, 1.0, 1.0);
