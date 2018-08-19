@@ -15,7 +15,7 @@ fn main() {
 
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
-    let context = glutin::ContextBuilder::new();
+    let context = glutin::ContextBuilder::new().with_multisampling(16);
     let display = glium::Display::new(window, context, &events_loop).unwrap();
 
     let mut closed = false;
@@ -25,9 +25,15 @@ fn main() {
 
         in vec2 position;
 
+        uniform float t;
+
         void main() {
-            gl_Position = vec4(position, 0.0, 1.0);
-        }"#;
+            vec2 pos = position;
+            pos.x += t;
+            gl_Position = vec4(pos, 0.0, 1.0);
+        }
+    "#;
+
     let fragment_shader_src = r#"
         #version 140
 
@@ -45,10 +51,15 @@ fn main() {
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
+    let mut t: f32 = -0.5;
     while !closed {
         let mut target = display.draw();
+        t += 0.02;
+        if t > 0.5 {
+            t = -0.5;
+        }
         target.clear_color(0.0, 0.0, 1.0, 1.0);
-        target.draw(&vertex_buffer, &indices, &program, &glium::uniforms::EmptyUniforms,
+        target.draw(&vertex_buffer, &indices, &program, &uniform! {t: t},
                     &Default::default()).unwrap();
         target.finish().unwrap();
 
