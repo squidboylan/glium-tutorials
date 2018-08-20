@@ -57,6 +57,14 @@ fn main() {
 
     let mut t: f32 = 0.0;
     let light = [-1.0, 0.4, 0.9f32];
+    let params = glium::DrawParameters {
+        depth: glium::Depth {
+            test: glium::draw_parameters::DepthTest::IfLess,
+            write: true,
+            .. Default::default()
+        },
+        .. Default::default()
+    };
 
     while !closed {
         let mut target = display.draw();
@@ -66,10 +74,10 @@ fn main() {
                 [0.0, 0.0, 0.01, 0.0],
                 [0.0, 0.0, 0.0, 1.0f32],
             ];
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
         target.draw((&positions, &normals), &indices, &program,
                     &uniform! { matrix: matrix, u_light: light },
-                                &Default::default()).unwrap();
+                                &params).unwrap();
         target.finish().unwrap();
 
         events_loop.poll_events(|ev| {
